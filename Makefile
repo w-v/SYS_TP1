@@ -4,9 +4,14 @@
 
 CFLAGS = -Wall -g
 
-bin/shell1: obj/shell2.o obj/shell1.o obj/shell3.o
-	gcc $(CFLAGS) -o bin/shell1 obj/shell1.o obj/shell3.o obj/shell2.o
+bin/shell1: obj/shell1.o 
+	gcc $(CFLAGS) -o bin/shell1 obj/shell1.o 
 
+bin/shell2: obj/shell2.o 
+	gcc $(CFLAGS) -o bin/shell2 obj/shell2.o
+
+bin/shell3: obj/shell3.o 
+	gcc $(CFLAGS) -o bin/shell3 obj/shell3.o
 #
 # Objets of TP Lists
 #
