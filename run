@@ -1,0 +1,5 @@
+make bin/shell${1}
+
+a=("" "ls -l" "ls -l | wc -l" "ls -l | grep include | wc -c")
+
+echo ${a[$2]} | bin/shell${1} 
