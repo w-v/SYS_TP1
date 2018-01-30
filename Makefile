@@ -15,6 +15,10 @@ bin/shell3: obj/shell3.o
 
 bin/shell4: obj/shell4.o 
 	gcc $(CFLAGS) -o bin/shell4 obj/shell4.o
+
+bin/shell5: obj/shell5.o 
+	gcc $(CFLAGS) -o bin/shell5 obj/shell5.o
+
 #
 # Objets of TP Lists
 #
@@ -31,6 +35,8 @@ obj/shell3.o: src/shell3.c
 obj/shell4.o: src/shell4.c
 	gcc $(CFLAGS) -I./include -c src/shell4.c -o obj/shell4.o
 
+obj/shell5.o: src/shell5.c
+	gcc $(CFLAGS) -I./include -c src/shell5.c -o obj/shell5.o
 #
 # Remove files
 #
