@@ -19,16 +19,17 @@ int cleanUp(char* str){
 }
 
 
-int main (void)
+int main (int argc, char* argv[])
 {
+  argc--;
   pid_t pid=getpid();
 
-  fprintf(stderr,"commande:");
+  if(argc) fprintf(stderr,"commande:");
 
   char str[MAX_CHAR];
   fgets(str, sizeof str, stdin);
   cleanUp(str);
-  fprintf(stderr,"(PID:%d) str: %s \n",pid,str);
+  if(argc) fprintf(stderr,"(PID:%d) str: %s \n",pid,str);
 
   int arrayForPipe[2];
   int k;
@@ -45,26 +46,26 @@ int main (void)
 
   while (cmd != NULL && nbPipe<MAX_PIPE ) {
 
-    fprintf(stderr,"\n(PID:%d) next_cmd: %s \n",pid,next_cmd);
-    fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
+    if(argc) fprintf(stderr,"\n(PID:%d) next_cmd: %s \n",pid,next_cmd);
+    if(argc) fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
 
     k = 0;
     params[0] = strtok_r(cmd," ",&svptr1);
-    fprintf(stderr,"(PID:%d) params[%d]: %s \n",pid,k,params[k]);
+    if(argc) fprintf(stderr,"(PID:%d) params[%d]: %s \n",pid,k,params[k]);
     while ( params[k] != NULL){ 
       k++;
       params[k] = strtok_r(NULL," ",&svptr1);
-      fprintf(stderr,"(PID:%d) params[%d]: %s \n",pid,k,params[k]);
+      if(argc) fprintf(stderr,"(PID:%d) params[%d]: %s \n",pid,k,params[k]);
     };
     params[k] = NULL;
 
 
     if(next_cmd != NULL){
       if (pipe(arrayForPipe) == -1){
-        fprintf(stderr,"Pipe failed");
+        if(argc) fprintf(stderr,"Pipe failed");
         exit(1);
       }
-      fprintf(stderr,"(PID:%d) created pipe wr:%d rd:%d \n",pid,arrayForPipe[1],arrayForPipe[0]);
+      if(argc) fprintf(stderr,"(PID:%d) created pipe wr:%d rd:%d \n",pid,arrayForPipe[1],arrayForPipe[0]);
     }
 
     pid = fork();
@@ -72,32 +73,33 @@ int main (void)
 
     if (pid==0) {
       //pid=getpid();
-      fprintf(stderr,"(PID:%d) next_cmd: %s \n",pid,next_cmd);
-      fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
+      if(argc) fprintf(stderr,"(PID:%d) next_cmd: %s \n",pid,next_cmd);
+      if(argc) fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
 
-      fprintf(stderr,"(PID:%d) reading from fd: %d\n",pid,lectureDuPipePred);
+      if(argc) fprintf(stderr,"(PID:%d) reading from fd: %d\n",pid,lectureDuPipePred);
       if ( dup2(lectureDuPipePred,0) == -1){
-        fprintf(stderr,"Duplication failed");
+        if(argc) fprintf(stderr,"Duplication failed");
         exit(1);
       }
       close(lectureDuPipePred);
+      close(arrayForPipe[0]);
 
       if(next_cmd != NULL){
-        fprintf(stderr,"(PID:%d) writing to fd: %d\n",pid,arrayForPipe[1]);
+        if(argc) fprintf(stderr,"(PID:%d) writing to fd: %d\n",pid,arrayForPipe[1]);
         if ( dup2(arrayForPipe[1],1) == -1){
-          fprintf(stderr,"Duplication failed");
+          if(argc) fprintf(stderr,"Duplication failed");
           exit(1);
         }
+      	close(arrayForPipe[1]);
       }
 
 
-      fprintf(stderr,"(PID:%d) exec: %s \n",pid,params[0]);
+      if(argc) fprintf(stderr,"(PID:%d) exec: %s \n",pid,params[0]);
       if (execvp(params[0], params) != 0){
-        fprintf(stderr,"commande introuvable");
+        if(argc) fprintf(stderr,"commande introuvable");
         exit(1);
       }
       
-      exit(0);
     }
     else {
       //el padre
