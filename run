@@ -2,4 +2,4 @@ make bin/shell${1}
 
 a=("" "ls -l" "ls -l | wc -l" "ls -l | grep include | wc -c" "ls -l | grep include | head | wc -c" "ls -l|grep r|head -5|tail -4|tr 'a' 'e'" "ls -l|grep r|head -5|tail -4|tr 'a' 'e'| sed s/-/_/g")
 
-echo ${a[$2]} | bin/shell${1} 
+echo ${a[$2]} | bin/shell${1} ${3}

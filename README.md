@@ -11,13 +11,19 @@ The purpose is to build a shell capable of running commands with parameters as w
  `shell5.c` : running a pipe with N commands with parameters, written with the `|` syntax  
 
 * `run` : script for compiling and testing the programs  
- syntax :  
+Usage :  
 
- `run fileNumber numberOfPipes`  
+ `run fileNumber numberOfPipes [option]`  
 
  `fileNumber` : 1 for shell1.c etc.  
  `numberOfPipes` : how many pipes the program is tested with. Max is 6  
+ `option` : `-v` to enable verbose mode
 
 ## Options
 
 The `shell5` program can be switched into verbose mode by giving it an argument (any argument) 
+
+## Possible improvements
+
+- Handling quotes
+- Handling commands' errors
