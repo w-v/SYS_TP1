@@ -9,6 +9,7 @@
 #define MAX_PIPE 10
 #define MAX_CHAR 200
 
+// function for removing the trailing newline in fgets' result
 int cleanUp(char* str){
   int i = 0;
   while (str[i] != '\n'){
@@ -21,9 +22,13 @@ int cleanUp(char* str){
 
 int main (int argc, char* argv[])
 {
+  /* to have a boolean indicating wether there is an argument.
+   * Used to enable verbose mode
+   */
   argc--;
+  
   pid_t pid=getpid();
-
+  
   if(argc) fprintf(stderr,"commande:");
 
   char str[MAX_CHAR];
@@ -32,27 +37,44 @@ int main (int argc, char* argv[])
   if(argc) fprintf(stderr,"(PID:%d) str: %s \n",pid,str);
 
   int pipe_fds[2];
+  
+  //index used to parse commands' parameters
   int k;
+
+  //variable used to keep track of the reading end of the last pipe
   int prev_pipe_read = 0;
+
+  //pipe counter
   int npipes = 0;
+
+  //array returning reading file descriptor of each pipe in the parent process
   int open_pipes[MAX_PIPE];
 
-  
+  //array for command parameters
   char* params[MAX_CHAR/2];
+
   char* cmd;
+
+  //an overhead is needed to check wether the output is to be piped or printed
   char* next_cmd;
+
+  //pointer keeping the context for the function strtok_r()
   char* svptr;
   char* svptr1;
+
   cmd = strtok_r(str,"|",&svptr);
-  next_cmd=strtok_r(NULL,"|",&svptr); 
+  next_cmd = strtok_r(NULL,"|",&svptr); 
 
+  //this loop is treating each command 
   while (cmd != NULL && npipes<MAX_PIPE ) {
-
+    
     if(argc) fprintf(stderr,"\n(PID:%d) next_cmd: %s \n",pid,next_cmd);
     if(argc) fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
 
+    //parameters parsing
     k = 0;
     params[0] = strtok_r(cmd," ",&svptr1);
+    
     if(argc) fprintf(stderr,"(PID:%d) params[%d]: %s \n",pid,k,params[k]);
     while ( params[k] != NULL){ 
       k++;
@@ -61,7 +83,7 @@ int main (int argc, char* argv[])
     };
     params[k] = NULL;
 
-
+    //pipe creation
     if(next_cmd != NULL){
       if (pipe(pipe_fds) == -1){
         if(argc) fprintf(stderr,"Pipe failed");
@@ -71,46 +93,58 @@ int main (int argc, char* argv[])
       if(argc) fprintf(stderr,"(PID:%d) created pipe wr:%d rd:%d \n",pid,pipe_fds[1],pipe_fds[0]);
     }
 
+    //making a child process to execute the current command
     pid = fork();
-    if (pid<0) { perror("Erreur fork"); exit(1); }
+    if (pid < 0) { perror("Erreur fork"); exit(1); }
 
-    if (pid==0) {
-      pid=getpid();
-      if(argc) fprintf(stderr,"(PID:%d) next_cmd: %s \n",pid,next_cmd);
-      if(argc) fprintf(stderr,"(PID:%d) cmd: %s \n",pid,cmd);
+    if (pid == 0) {
+      //child process
+      pid = getpid();
 
-      if(argc) fprintf(stderr,"(PID:%d) reading from fd: %d\n",pid,prev_pipe_read);
-      if ( dup2(prev_pipe_read,0) == -1){
-        if(argc) fprintf(stderr,"Duplication failed");
+      //stderr is used to print debug informations without altering the outpout piped to the next process
+      if(argc) fprintf(stderr, "(PID:%d) next_cmd: %s \n", pid, next_cmd);
+      if(argc) fprintf(stderr, "(PID:%d) cmd: %s \n", pid, cmd);
+
+      //reading file descriptor duplication
+      if(argc) fprintf(stderr, "(PID:%d) reading from fd: %d\n", pid, prev_pipe_read);
+      if(dup2(prev_pipe_read,0) == -1){
+        if(argc) fprintf(stderr, "Duplication failed");
         exit(1);
       }
+      //closing the last duplicated file descriptor
       close(prev_pipe_read);
+      //closing the reading file descriptor of the next pipe
       close(pipe_fds[0]);
 
+      //writing file descriptor duplication
       if(next_cmd != NULL){
-        if(argc) fprintf(stderr,"(PID:%d) writing to fd: %d\n",pid,pipe_fds[1]);
-        if ( dup2(pipe_fds[1],1) == -1){
-          if(argc) fprintf(stderr,"Duplication failed");
+        if(argc) fprintf(stderr, "(PID:%d) writing to fd: %d\n", pid, pipe_fds[1]);
+        if (dup2(pipe_fds[1], 1) == -1){
+          if(argc) fprintf(stderr, "Duplication failed");
           exit(1);
         }
       	close(pipe_fds[1]);
       }
 
-
+      //command execution
       if(argc) fprintf(stderr,"(PID:%d) exec: %s \n",pid,params[0]);
       if (execvp(params[0], params) != 0){
         if(argc) fprintf(stderr,"commande introuvable");
         exit(1);
       }
-       
+
     }
+
     else {
-      //el padre
-      //sleep(1);
+      //parent process
+      pid = getpid();
+      //closing the writing file descriptor
       close(pipe_fds[1]);
+      //reading file descriptor passed to the next child process
       prev_pipe_read = pipe_fds[0];
-      cmd=next_cmd;
-      next_cmd=strtok_r(NULL,"|",&svptr); 
+      //parsing the next command
+      cmd = next_cmd;
+      next_cmd = strtok_r(NULL,"|",&svptr); 
       npipes++;
     }
   }
@@ -123,9 +157,12 @@ int main (int argc, char* argv[])
 
   for(int i;i<npipes;i++){
 
+      //closing the remaining file descriptors
       close(open_pipes[i]);
+      //waiting for zombies 
       dead_chld = wait(&status);
-      exit_status|=status;
+      //computing the program exit status
+      exit_status |= status;
   
       if(argc) fprintf(stderr,"(PID:%d) killed zombie child: %d \n",pid,dead_chld);
       if(argc) fprintf(stderr,"(PID:%d) he died %s \n",pid,fate[(status > 0) - (status < 0)]);
