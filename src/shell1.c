@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*char * cleanUp(char* str){
+char * cleanUp(char* str){
   int i = 0;
   while (str[i] != '\n'){
     i++;
@@ -35,4 +35,4 @@ int main (void)
 
   return 0;
 }
-*/
+

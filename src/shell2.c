@@ -48,7 +48,7 @@ int main (void)
     }
   }
   else {
-    pid_t wait(int *status);
+    wait(NULL);
   }
 
 

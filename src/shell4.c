@@ -5,14 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*char * cleanUp(char* str){
+char * cleanUp(char* str){
   int i = 0;
   while (str[i] != '\n'){
     i++;
   }
   str[i] = '\0';
   return 0;
-}*/
+}
 
 
 int main (void)
