@@ -25,5 +25,5 @@ The `shell5` program can be switched into verbose mode by giving it an argument 
 
 ## Possible improvements
 
-- Handling quotes
-- Handling commands' errors
+- Handling quotes : sed 's/ /\_/g' will take 's/ as the first parameter, instead of 's/ /\_/g' 
+- Handling commands' errors : when a command fails, the next ones still get executed
